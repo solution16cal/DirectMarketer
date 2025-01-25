@@ -7,6 +7,7 @@ import ContactForm from './components/ContactForm';
 import ContactDetails from './components/ContactDetails';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout';
+import Reporting from './components/Reporting';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
           <Route index element={<ContactList />} />
           <Route path="/create" element={<ContactForm />} />
           <Route path="/contacts/:id" element={<ContactDetails />} />
+          <Route path="/reporting" element={<Reporting />} />
         </Route>
       </Routes>
     </Router>

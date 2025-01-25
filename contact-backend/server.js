@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const reportRoutes = require('./routes/reportRoutes'); // Adjust the path as needed
 
 
 // Initialize Express
@@ -18,15 +19,15 @@ app.use(bodyParser.json());
 // Define Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/reports', reportRoutes);
 
 // MongoDB Connection
 const MONGO_URI = 'mongodb://localhost:27017/contacts';
 mongoose
   .connect(MONGO_URI, {
-    useNewUrlParser: true, // Optional for Mongoose v6+
-    useUnifiedTopology: true, // Optional for Mongoose v6+
+
   })
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log('MongoDB connected Champ'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Start Server

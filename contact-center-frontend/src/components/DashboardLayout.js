@@ -44,6 +44,7 @@ const DashboardLayout = () => {
   const menuItems = [
     { text: 'Contact List', path: '/' },
     { text: 'Add Contact', path: '/create' },
+    { text: 'Reporting', path: '/reporting' },
   ];
 
   return (
