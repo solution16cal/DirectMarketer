@@ -1,81 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
   TextField,
   Button,
-  Box,
-  Grid,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import axios from 'axios';
 
 const Reporting = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [userName, setUserName] = useState(''); // Add this state
+    const [users, setUsers] = useState([]);
     const [report, setReport] = useState(null);
-  
-    const handleGenerateReport = async () => {
-      try {
-        const response = await axios.post('http://localhost:5000/api/reports/notes', {
-          startDate,
-          endDate,
-        });
-        setReport(response.data);
-      } catch (error) {
-        console.error('Error fetching report:', error);
-      }
-    };
+
+  useEffect(() => {
+    // Fetch users for the dropdown
+    axios.get('http://localhost:5000/api/users')
+      .then((response) => setUsers(response.data))
+      .catch((error) => console.error('Error fetching users:', error));
+  }, []);
+
+  const handleGenerateReport = async () => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/reports/notes', {
+        startDate,
+        endDate,
+        userName, // Pass the user's full name
+      });
+      setReport(response.data);
+    } catch (error) {
+      console.error('Error fetching report:', error);
+    }
+  };
 
   return (
-    <Container style={{ marginTop: '2rem' }}>
+    <Container>
       <Typography variant="h4" gutterBottom>
         Notes Reporting
       </Typography>
-      <Box component="form" noValidate autoComplete="off" style={{ marginBottom: '2rem' }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Start Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="End Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleGenerateReport}
-              style={{ marginTop: '1rem' }}
-            >
-              Generate Report
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
+      <TextField
+        label="Start Date"
+        type="date"
+        InputLabelProps={{ shrink: true }}
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        label="End Date"
+        type="date"
+        InputLabelProps={{ shrink: true }}
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        fullWidth
+        margin="normal"
+      />
+      <FormControl fullWidth margin="normal">
+      <InputLabel>User</InputLabel>
+  <Select
+    value={userName}
+    onChange={(e) => setUserName(e.target.value)} // Use userName instead of userId
+  >
+    <MenuItem value="">All Users</MenuItem>
+    {users.map((user) => (
+      <MenuItem key={user._id} value={user.fullName}> {/* Use fullName here */}
+        {user.fullName}
+      </MenuItem>
+    ))}
+  </Select>
+      </FormControl>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleGenerateReport}
+        style={{ marginTop: '1rem' }}
+      >
+        Generate Report
+      </Button>
 
       {report && (
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            Report Results
-          </Typography>
+        <div style={{ marginTop: '2rem' }}>
+          <Typography variant="h5">Report Results:</Typography>
           <Typography>Total Notes: {report.totalNotes}</Typography>
-          <Typography>
-            Customer Contacted Notes: {report.contactedNotes}
-          </Typography>
-        </Box>
+          <Typography>Customer Contacted Notes: {report.contactedNotes}</Typography>
+        </div>
       )}
     </Container>
   );

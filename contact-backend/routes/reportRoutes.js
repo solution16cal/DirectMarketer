@@ -1,22 +1,42 @@
 const express = require('express');
 const router = express.Router();
 const Contact = require('../models/Contact'); // Adjust the path as necessary
+const moment = require('moment-timezone'); // Use moment-timezone for timezone handling
 
 router.post('/notes', async (req, res) => {
-  const { startDate, endDate } = req.body;
+  const { startDate, endDate, userName } = req.body;
 
   try {
-    const matchStage = {
-      $match: {
-        'notes.date': {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
-      },
-    };
+    const matchFilter = {};
 
+    if (startDate) {
+      // Convert startDate to UTC midnight of the local day
+      const startOfDayUTC = moment.tz(startDate, 'YYYY-MM-DD', 'Australia/Brisbane') // Replace with your timezone
+        .startOf('day')
+        .utc()
+        .toDate();
+      matchFilter['notes.date'] = { $gte: startOfDayUTC };
+    }
+
+    if (endDate) {
+      // Convert endDate to UTC end of the local day
+      const endOfDayUTC = moment.tz(endDate, 'YYYY-MM-DD', 'Australia/Brisbane') // Replace with your timezone
+        .endOf('day')
+        .utc()
+        .toDate();
+      matchFilter['notes.date'] = matchFilter['notes.date']
+        ? { ...matchFilter['notes.date'], $lte: endOfDayUTC }
+        : { $lte: endOfDayUTC };
+    }
+
+    if (userName) {
+      matchFilter['notes.createdBy'] = userName; // Match by userName
+    }
+
+    console.log('Match Filter:', JSON.stringify(matchFilter, null, 2)); // Debug log
+
+    const matchStage = { $match: matchFilter };
     const unwindStage = { $unwind: '$notes' };
-
     const groupStage = {
       $group: {
         _id: null,
@@ -37,5 +57,4 @@ router.post('/notes', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
 module.exports = router;

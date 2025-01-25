@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const reportRoutes = require('./routes/reportRoutes'); // Adjust the path as needed
+const userRoutes = require('./routes/userRoutes');
 
 
 // Initialize Express
@@ -20,6 +21,7 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/users', userRoutes);
 
 // MongoDB Connection
 const MONGO_URI = 'mongodb://localhost:27017/contacts';
