@@ -1,5 +1,5 @@
 import axios from 'axios';
-import register from './components/Register';
+
 
 const API = axios.create({ baseURL: 'http://localhost:5000/api' });
 
@@ -34,5 +34,5 @@ export default {
   createContact,
   addNote,
   login,
-  register,
+
 };

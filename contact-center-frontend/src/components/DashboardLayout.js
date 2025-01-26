@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   CssBaseline,
   Drawer,
+  Button,
   AppBar,
   Toolbar,
   Typography,
@@ -19,11 +21,21 @@ const DashboardLayout = () => {
   const location = useLocation();
   const { id } = useParams(); // For dynamic Contact Details pages
   const [contact, setContact] = useState(null);
+  const navigate = useNavigate();
 
   // Map static routes to page titles
   const pageTitles = {
     '/': 'Contact List',
     '/create': 'Add Contact',
+  };
+
+
+  const handleLogout = () => {
+    // Clear the token or any stored user data
+    localStorage.removeItem('token');
+
+    // Redirect to login
+    navigate('/login');
   };
 
   // Fetch contact details if on Contact Details page
@@ -45,6 +57,7 @@ const DashboardLayout = () => {
     { text: 'Contact List', path: '/' },
     { text: 'Add Contact', path: '/create' },
     { text: 'Reporting', path: '/reporting' },
+    { text: 'Create User', path: '/register' },
   ];
 
   return (
@@ -68,6 +81,13 @@ const DashboardLayout = () => {
           >
             {pageTitle}
           </Typography>
+          <Button
+            color="inherit"
+            onClick={handleLogout}
+            style={{ marginLeft: 'auto' }}
+          >
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
 

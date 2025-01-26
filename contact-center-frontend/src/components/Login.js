@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Container, Typography, Grid } from '@mui/material';
-import API from '../api';
+import API from '../api'; // Ensure this contains the login function
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -10,18 +10,15 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    setError(''); // Clear previous errors
     try {
-      const response = await API.login({ email, password });
-      localStorage.setItem('token', response.data.token); // Save JWT to localStorage
-      navigate('/'); // Redirect to the dashboard
+      const response = await API.login({ email, password }); // Call the API
+      localStorage.setItem('token', response.data.token); // Save JWT token to localStorage
+      navigate('/'); // Redirect to the dashboard or home page
     } catch (err) {
       console.error('Error during login:', err.response?.data || err);
-      setError('Invalid email or password');
+      setError(err.response?.data?.message || 'Invalid email or password');
     }
-  };
-
-  const handleRegisterRedirect = () => {
-    navigate('/register'); // Redirect to the registration page
   };
 
   return (
@@ -29,7 +26,7 @@ const Login = () => {
       <Typography variant="h4" gutterBottom>
         Login
       </Typography>
-      {error && <Typography color="error">{error}</Typography>}
+      {error && <Typography color="error" style={{ marginBottom: '1rem' }}>{error}</Typography>}
       <TextField
         label="Email"
         fullWidth
@@ -46,7 +43,7 @@ const Login = () => {
         onChange={(e) => setPassword(e.target.value)}
       />
       <Grid container spacing={2} style={{ marginTop: '1rem' }}>
-        <Grid item xs={6}>
+        <Grid item xs={12}>
           <Button
             variant="contained"
             color="primary"
@@ -54,16 +51,6 @@ const Login = () => {
             onClick={handleLogin}
           >
             Login
-          </Button>
-        </Grid>
-        <Grid item xs={6}>
-          <Button
-            variant="outlined"
-            color="primary"
-            fullWidth
-            onClick={handleRegisterRedirect}
-          >
-            Register
           </Button>
         </Grid>
       </Grid>
