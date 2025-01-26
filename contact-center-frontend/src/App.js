@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout';
 import Reporting from './components/Reporting';
 import CreateUser from './components/CreateUser';
+import EmailTemplates from './components/EmailTemplates';
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/create" element={<ContactForm />} />
           <Route path="/contacts/:id" element={<ContactDetails />} />
           <Route path="/reporting" element={<Reporting />} />
+          <Route path="/email-templates" element={<EmailTemplates />} />
           <Route path="/register"element={ <ProtectedRoute role="admin"> <CreateUser /></ProtectedRoute>
   }
 />

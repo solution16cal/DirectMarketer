@@ -36,6 +36,9 @@ export const addNote = (id, { text, contacted }) => {
   console.log('Adding note with:', { text, contacted, id }); // Debugging
   return API.post(`/contacts/${id}/notes`, { text, contacted });
 };
+export const fetchEmailTemplates = () => API.get('/email-templates');
+export const createEmailTemplate = (data) => API.post('/email-templates', data);
+export const deleteEmailTemplate = (id) => API.delete(`/email-templates/${id}`);
 
 export default {
   fetchContacts,
@@ -45,5 +48,8 @@ export default {
   login,
   importContacts,
   updateContact,
+  fetchEmailTemplates,
+  createEmailTemplate,
+  deleteEmailTemplate,
 
 };

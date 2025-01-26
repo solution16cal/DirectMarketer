@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const reportRoutes = require('./routes/reportRoutes'); // Adjust the path as needed
 const userRoutes = require('./routes/userRoutes');
+const emailTemplateRoutes = require('./routes/emailTemplateRoutes');
 
 
 // Initialize Express
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/email-templates', emailTemplateRoutes);
 
 // MongoDB Connection
 const MONGO_URI = 'mongodb://localhost:27017/contacts';

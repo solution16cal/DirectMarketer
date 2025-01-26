@@ -15,8 +15,12 @@ import {
   CardContent,
   Chip,
   IconButton,
+  FormControl,
+  MenuItem,
+  Select,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import Mustache from 'mustache';
 import API from '../api';
 
 const ContactDetails = () => {
@@ -27,48 +31,80 @@ const ContactDetails = () => {
   const [emailContent, setEmailContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [updatedContact, setUpdatedContact] = useState({});
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
 
+  // Fetch contact details
   useEffect(() => {
     API.fetchContact(id)
       .then((response) => {
         setContact(response.data);
-        setUpdatedContact(response.data); // Initialize editable fields
+        setUpdatedContact(response.data);
       })
       .catch((error) => console.error('Error fetching contact:', error));
   }, [id]);
 
+  // Fetch email templates
+  useEffect(() => {
+    API.fetchEmailTemplates()
+      .then((response) => setTemplates(response.data))
+      .catch((error) => console.error('Error fetching templates:', error));
+  }, []);
+
+  // Handle adding a note
   const handleAddNote = () => {
     API.addNote(id, { text: note, contacted })
       .then((response) => {
-        setContact(response.data); // Update contact with new notes
-        setNote(''); // Clear note input
-        setContacted(false); // Reset checkbox
+        setContact(response.data);
+        setNote('');
+        setContacted(false);
       })
       .catch((error) => console.error('Error adding note:', error));
   };
 
+  // Handle editing contact
   const handleEditContact = () => {
     setIsEditing(true);
   };
 
+  // Handle saving edited contact
   const handleSaveContact = () => {
     API.updateContact(id, updatedContact)
       .then((response) => {
-        setContact(response.data); // Update the contact with new details
+        setContact(response.data);
         setIsEditing(false);
       })
       .catch((error) => console.error('Error saving contact:', error));
   };
 
+  // Handle "Do Not Call" toggle
   const handleToggleDoNotCall = () => {
     setUpdatedContact((prev) => ({ ...prev, doNotCall: !prev.doNotCall }));
+  };
+
+  // Handle selecting an email template and render dynamic fields
+  const handleTemplateSelect = (templateId) => {
+    const template = templates.find((t) => t._id === templateId);
+    setSelectedTemplate(templateId);
+    if (template && contact) {
+      const rendered = Mustache.render(template.content, { contact });
+      setEmailContent(rendered);
+    }
+  };
+
+  const handleExpandTextArea = (e, setState) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${e.target.scrollHeight}px`;
+    setState(e.target.value);
   };
 
   if (!contact) return <div>Loading...</div>;
 
   return (
     <Container style={{ marginTop: '2rem' }}>
-
+      <Typography variant="h4" gutterBottom>
+        Contact Details
+      </Typography>
 
       <Grid container spacing={4}>
         {/* Left Column: Contact Details and Add Note */}
@@ -174,14 +210,19 @@ const ContactDetails = () => {
                 Add Note
               </Typography>
               <TextField
-                label="Add Note"
-                fullWidth
-                multiline
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                style={{ marginTop: '1rem' }}
-              />
+  label="Add Note"
+  fullWidth
+  multiline
+  rows={3}
+  value={note}
+  onChange={(e) => setNote(e.target.value)}
+  InputProps={{
+    style: { resize: 'vertical' }, // Allow vertical resizing
+  }}
+  style={{ marginTop: '1rem' }}
+/>
+
+
               <FormControlLabel
                 control={
                   <Checkbox
@@ -202,27 +243,45 @@ const ContactDetails = () => {
               </Button>
 
               {/* Email Customer Section */}
-              <Typography variant="h6" style={{ marginTop: '2rem' }}>
-                Email Customer
-              </Typography>
-              <TextField
-                label="Email Content"
-                fullWidth
-                multiline
-                rows={4}
-                value={emailContent}
-                onChange={(e) => setEmailContent(e.target.value)}
-                style={{ marginTop: '1rem' }}
-              />
-              <Button
-                variant="contained"
-                color="secondary"
-                style={{ marginTop: '1rem' }}
-                fullWidth
-                onClick={() => alert('This is a placeholder for sending emails.')}
-              >
-                Send Email
-              </Button>
+              <div>
+                <Typography variant="h6" style={{ marginTop: '2rem' }}>
+                  Email Customer
+                </Typography>
+                <FormControl fullWidth style={{ marginBottom: '1rem' }}>
+                  <Select
+                    value={selectedTemplate}
+                    onChange={(e) => handleTemplateSelect(e.target.value)}
+                  >
+                    <MenuItem value="">Select a Template</MenuItem>
+                    {templates.map((template) => (
+                      <MenuItem key={template._id} value={template._id}>
+                        {template.title}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+  label="Email Content"
+  fullWidth
+  multiline
+  rows={4}
+  value={emailContent}
+  onChange={(e) => setEmailContent(e.target.value)}
+  InputProps={{
+    style: { resize: 'vertical' }, // Allow vertical resizing
+  }}
+  style={{ marginTop: '1rem' }}
+/>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  style={{ marginTop: '1rem' }}
+                  fullWidth
+                  onClick={() => alert('Send email functionality to be implemented')}
+                >
+                  Send Email
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </Grid>
