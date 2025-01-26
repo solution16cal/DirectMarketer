@@ -26,7 +26,9 @@ const DashboardLayout = () => {
   // Map static routes to page titles
   const pageTitles = {
     '/': 'Contact List',
-    '/create': 'Add Contact',
+    '/create': 'Contact Management',
+    '/register': 'User Management',
+    '/reporting': 'Reporting',
   };
 
 
@@ -55,9 +57,9 @@ const DashboardLayout = () => {
 
   const menuItems = [
     { text: 'Contact List', path: '/' },
-    { text: 'Add Contact', path: '/create' },
+    { text: 'Contact Management', path: '/create' },
     { text: 'Reporting', path: '/reporting' },
-    { text: 'Create User', path: '/register' },
+    { text: 'User Management', path: '/register' },
   ];
 
   return (

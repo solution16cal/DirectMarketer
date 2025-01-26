@@ -37,6 +37,45 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Error creating contact', error });
   }
 });
+// Bulk import contacts from CSV
+router.post('/import', async (req, res) => {
+  const contacts = req.body;
+
+  try {
+    if (!Array.isArray(contacts)) {
+      return res.status(400).json({ message: 'Invalid data format' });
+    }
+
+    // Save all contacts in bulk
+    await Contact.insertMany(contacts);
+    res.status(201).json({ message: 'Contacts imported successfully' });
+  } catch (error) {
+    console.error('Error importing contacts:', error);
+    res.status(500).json({ message: 'Error importing contacts' });
+  }
+});
+
+//Edit Contacts
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(id, updatedData, {
+      new: true, // Return the updated document
+      runValidators: true, // Validate before updating
+    });
+
+    if (!updatedContact) {
+      return res.status(404).json({ message: 'Contact not found' });
+    }
+
+    res.status(200).json(updatedContact);
+  } catch (error) {
+    console.error('Error updating contact:', error);
+    res.status(500).json({ message: 'Error updating contact' });
+  }
+});
 
 // Add a Note to a Contact
 router.post('/:id/notes', authMiddleware, async (req, res) => {

@@ -82,9 +82,6 @@ const CreateUser = () => {
 
   return (
     <Container style={{ marginTop: '2rem' }}>
-      <Typography variant="h4" gutterBottom>
-        User Management
-      </Typography>
 
       <Grid container spacing={3} justifyContent="center">
         {/* Create New User */}

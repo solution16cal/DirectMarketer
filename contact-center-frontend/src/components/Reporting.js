@@ -55,9 +55,7 @@ const Reporting = () => {
 
   return (
     <Container style={{ marginTop: '2rem' }}>
-      <Typography variant="h4" gutterBottom>
-        Notes Reporting
-      </Typography>
+
 
       <Grid container spacing={3}>
         {/* Filters Section */}

@@ -12,6 +12,7 @@ const ContactSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   companyName: { type: String, required: true },
   email: { type: String },
+  doNotCall: { type: Boolean, default: false }, 
   notes: [NoteSchema],
 });
 

@@ -13,7 +13,10 @@ import {
   ListItemText,
   Card,
   CardContent,
+  Chip,
+  IconButton,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import API from '../api';
 
 const ContactDetails = () => {
@@ -21,11 +24,16 @@ const ContactDetails = () => {
   const [contact, setContact] = useState(null);
   const [note, setNote] = useState('');
   const [contacted, setContacted] = useState(false);
-  const [emailContent, setEmailContent] = useState(''); // State for email content
+  const [emailContent, setEmailContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [updatedContact, setUpdatedContact] = useState({});
 
   useEffect(() => {
     API.fetchContact(id)
-      .then((response) => setContact(response.data))
+      .then((response) => {
+        setContact(response.data);
+        setUpdatedContact(response.data); // Initialize editable fields
+      })
       .catch((error) => console.error('Error fetching contact:', error));
   }, [id]);
 
@@ -39,13 +47,28 @@ const ContactDetails = () => {
       .catch((error) => console.error('Error adding note:', error));
   };
 
+  const handleEditContact = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveContact = () => {
+    API.updateContact(id, updatedContact)
+      .then((response) => {
+        setContact(response.data); // Update the contact with new details
+        setIsEditing(false);
+      })
+      .catch((error) => console.error('Error saving contact:', error));
+  };
+
+  const handleToggleDoNotCall = () => {
+    setUpdatedContact((prev) => ({ ...prev, doNotCall: !prev.doNotCall }));
+  };
+
   if (!contact) return <div>Loading...</div>;
 
   return (
     <Container style={{ marginTop: '2rem' }}>
-      <Typography variant="h4" gutterBottom>
-        Contact Details
-      </Typography>
+
 
       <Grid container spacing={4}>
         {/* Left Column: Contact Details and Add Note */}
@@ -62,13 +85,92 @@ const ContactDetails = () => {
         >
           <Card>
             <CardContent>
-              <Typography variant="h5">{contact.name}</Typography>
-              <Typography variant="subtitle1">{contact.phone}</Typography>
-              <Typography variant="subtitle2" gutterBottom>
-                {contact.email}
-              </Typography>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5">
+                  {isEditing ? 'Edit Contact' : contact.name}
+                </Typography>
+                <div>
+                  {contact.doNotCall && (
+                    <Chip
+                      label="Do Not Call"
+                      color="error"
+                      style={{ marginRight: '8px' }}
+                    />
+                  )}
+                  <IconButton onClick={handleEditContact}>
+                    <EditIcon />
+                  </IconButton>
+                </div>
+              </div>
+              {isEditing ? (
+                <>
+                  <TextField
+                    label="Name"
+                    fullWidth
+                    margin="normal"
+                    value={updatedContact.name || ''}
+                    onChange={(e) =>
+                      setUpdatedContact({ ...updatedContact, name: e.target.value })
+                    }
+                  />
+                  <TextField
+                    label="Company Name"
+                    fullWidth
+                    margin="normal"
+                    value={updatedContact.companyName || ''}
+                    onChange={(e) =>
+                      setUpdatedContact({ ...updatedContact, companyName: e.target.value })
+                    }
+                  />
+                  <TextField
+                    label="Phone"
+                    fullWidth
+                    margin="normal"
+                    value={updatedContact.phone || ''}
+                    onChange={(e) =>
+                      setUpdatedContact({ ...updatedContact, phone: e.target.value })
+                    }
+                  />
+                  <TextField
+                    label="Email"
+                    fullWidth
+                    margin="normal"
+                    value={updatedContact.email || ''}
+                    onChange={(e) =>
+                      setUpdatedContact({ ...updatedContact, email: e.target.value })
+                    }
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={updatedContact.doNotCall || false}
+                        onChange={handleToggleDoNotCall}
+                      />
+                    }
+                    label="Do Not Call"
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    style={{ marginTop: '1rem' }}
+                    onClick={handleSaveContact}
+                    fullWidth
+                  >
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Typography variant="subtitle1">{contact.companyName}</Typography>
+                  <Typography variant="subtitle1">{contact.phone}</Typography>
+                  <Typography variant="subtitle2" gutterBottom>
+                    {contact.email}
+                  </Typography>
+                </>
+              )}
 
-              <Typography variant="h6" style={{ marginTop: '1rem' }}>
+              {/* Add Note Section */}
+              <Typography variant="h6" style={{ marginTop: '2rem' }}>
                 Add Note
               </Typography>
               <TextField
@@ -135,7 +237,7 @@ const ContactDetails = () => {
               <List>
                 {contact.notes
                   .slice()
-                  .reverse() // Show newest notes first
+                  .reverse()
                   .map((note, index) => (
                     <ListItem
                       key={index}

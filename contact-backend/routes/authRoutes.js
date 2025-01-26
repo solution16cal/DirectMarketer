@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, role } = req.body;
 
   if (!fullName || !email || !password) {
     return res.status(400).json({ message: 'All fields are required' });
@@ -55,9 +55,13 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcryptjs.hash(password, 10);
-    console.log('Hashed Password:', hashedPassword);
 
-    const newUser = new User({ fullName, email, password: hashedPassword });
+    const newUser = new User({
+      fullName,
+      email,
+      password: hashedPassword,
+      role: role || 'user', // Default role to 'user'
+    });
 
     await newUser.save();
     res.status(201).json({ message: 'User created successfully' });

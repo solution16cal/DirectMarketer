@@ -30,7 +30,9 @@ const App = () => {
           <Route path="/create" element={<ContactForm />} />
           <Route path="/contacts/:id" element={<ContactDetails />} />
           <Route path="/reporting" element={<Reporting />} />
-          <Route path="/register" element={<CreateUser />} />
+          <Route path="/register"element={ <ProtectedRoute role="admin"> <CreateUser /></ProtectedRoute>
+  }
+/>
         </Route>
       </Routes>
     </Router>
