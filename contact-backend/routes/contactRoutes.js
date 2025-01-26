@@ -8,8 +8,20 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const contacts = await Contact.find();
-    res.status(200).json(contacts);
+
+    // Map contacts to include last note details
+    const contactsWithLastNote = contacts.map((contact) => {
+      const lastNote = contact.notes[contact.notes.length - 1]; // Get the most recent note
+      return {
+        ...contact._doc, // Spread original contact fields
+        lastUpdated: lastNote ? lastNote.date : null,
+        lastUpdatedBy: lastNote ? lastNote.createdBy : null,
+      };
+    });
+
+    res.status(200).json(contactsWithLastNote);
   } catch (error) {
+    console.error('Error fetching contacts:', error);
     res.status(500).json({ message: 'Error fetching contacts', error });
   }
 });
