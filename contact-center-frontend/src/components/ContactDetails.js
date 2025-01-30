@@ -39,7 +39,13 @@ const ContactDetails = () => {
     API.fetchContact(id)
       .then((response) => {
         setContact(response.data);
-        setUpdatedContact(response.data);
+        setUpdatedContact({
+          name: response.data.name,
+          companyName: response.data.companyName,
+          phone: response.data.phone,
+          email: response.data.email,
+          doNotCall: response.data.doNotCall,
+        });
       })
       .catch((error) => console.error('Error fetching contact:', error));
   }, [id]);
@@ -51,25 +57,26 @@ const ContactDetails = () => {
       .catch((error) => console.error('Error fetching templates:', error));
   }, []);
 
-  // Handle adding a note
-  const handleAddNote = () => {
-    API.addNote(id, { text: note, contacted })
-      .then((response) => {
-        setContact(response.data);
-        setNote('');
-        setContacted(false);
+  // Handle "Do Not Call" toggle
+  const handleToggleDoNotCall = () => {
+    const updatedDoNotCall = !updatedContact.doNotCall;
+    setUpdatedContact((prev) => ({ ...prev, doNotCall: updatedDoNotCall }));
+
+    API.updateContact(id, { doNotCall: updatedDoNotCall })
+      .then(() => {
+        setContact((prev) => ({ ...prev, doNotCall: updatedDoNotCall }));
       })
-      .catch((error) => console.error('Error adding note:', error));
+      .catch((error) => console.error('Error updating Do Not Call:', error));
   };
 
-  // Handle editing contact
-  const handleEditContact = () => {
-    setIsEditing(true);
-  };
-
-  // Handle saving edited contact
+  // Handle saving edited contact fields
   const handleSaveContact = () => {
-    API.updateContact(id, updatedContact)
+    API.updateContact(id, {
+      name: updatedContact.name,
+      companyName: updatedContact.companyName,
+      phone: updatedContact.phone,
+      email: updatedContact.email,
+    })
       .then((response) => {
         setContact(response.data);
         setIsEditing(false);
@@ -77,12 +84,22 @@ const ContactDetails = () => {
       .catch((error) => console.error('Error saving contact:', error));
   };
 
-  // Handle "Do Not Call" toggle
-  const handleToggleDoNotCall = () => {
-    setUpdatedContact((prev) => ({ ...prev, doNotCall: !prev.doNotCall }));
+  // Handle adding a note
+  const handleAddNote = () => {
+    if (!note.trim()) return;
+    API.addNote(id, { text: note, contacted })
+      .then((response) => {
+        setContact((prev) => ({
+          ...prev,
+          notes: response.data.notes,
+        }));
+        setNote('');
+        setContacted(false);
+      })
+      .catch((error) => console.error('Error adding note:', error));
   };
 
-  // Handle selecting an email template and render dynamic fields
+  // Handle selecting an email template and dynamically render placeholders
   const handleTemplateSelect = (templateId) => {
     const template = templates.find((t) => t._id === templateId);
     setSelectedTemplate(templateId);
@@ -90,12 +107,6 @@ const ContactDetails = () => {
       const rendered = Mustache.render(template.content, { contact });
       setEmailContent(rendered);
     }
-  };
-
-  const handleExpandTextArea = (e, setState) => {
-    e.target.style.height = 'auto';
-    e.target.style.height = `${e.target.scrollHeight}px`;
-    setState(e.target.value);
   };
 
   if (!contact) return <div>Loading...</div>;
@@ -107,18 +118,8 @@ const ContactDetails = () => {
       </Typography>
 
       <Grid container spacing={4}>
-        {/* Left Column: Contact Details and Add Note */}
-        <Grid
-          item
-          xs={12}
-          md={6}
-          style={{
-            position: 'sticky',
-            top: '16px',
-            alignSelf: 'start',
-            zIndex: 1,
-          }}
-        >
+        {/* Left Column */}
+        <Grid item xs={12} md={6} style={{ position: 'sticky', top: '16px', zIndex: 1 }}>
           <Card>
             <CardContent>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -133,11 +134,12 @@ const ContactDetails = () => {
                       style={{ marginRight: '8px' }}
                     />
                   )}
-                  <IconButton onClick={handleEditContact}>
+                  <IconButton onClick={() => setIsEditing(true)}>
                     <EditIcon />
                   </IconButton>
                 </div>
               </div>
+
               {isEditing ? (
                 <>
                   <TextField
@@ -199,9 +201,7 @@ const ContactDetails = () => {
                 <>
                   <Typography variant="subtitle1">{contact.companyName}</Typography>
                   <Typography variant="subtitle1">{contact.phone}</Typography>
-                  <Typography variant="subtitle2" gutterBottom>
-                    {contact.email}
-                  </Typography>
+                  <Typography variant="subtitle2">{contact.email}</Typography>
                 </>
               )}
 
@@ -210,26 +210,17 @@ const ContactDetails = () => {
                 Add Note
               </Typography>
               <TextField
-  label="Add Note"
-  fullWidth
-  multiline
-  rows={3}
-  value={note}
-  onChange={(e) => setNote(e.target.value)}
-  InputProps={{
-    style: { resize: 'vertical' }, // Allow vertical resizing
-  }}
-  style={{ marginTop: '1rem' }}
-/>
-
-
+                label="Add Note"
+                fullWidth
+                multiline
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                InputProps={{ style: { resize: 'vertical' } }}
+                style={{ marginTop: '1rem' }}
+              />
               <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={contacted}
-                    onChange={(e) => setContacted(e.target.checked)}
-                  />
-                }
+                control={<Checkbox checked={contacted} onChange={(e) => setContacted(e.target.checked)} />}
                 label="Customer Contacted"
               />
               <Button
@@ -242,51 +233,46 @@ const ContactDetails = () => {
                 Add Note
               </Button>
 
-              {/* Email Customer Section */}
-              <div>
-                <Typography variant="h6" style={{ marginTop: '2rem' }}>
-                  Email Customer
-                </Typography>
-                <FormControl fullWidth style={{ marginBottom: '1rem' }}>
-                  <Select
-                    value={selectedTemplate}
-                    onChange={(e) => handleTemplateSelect(e.target.value)}
-                  >
-                    <MenuItem value="">Select a Template</MenuItem>
-                    {templates.map((template) => (
-                      <MenuItem key={template._id} value={template._id}>
-                        {template.title}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-  label="Email Content"
-  fullWidth
-  multiline
-  rows={4}
-  value={emailContent}
-  onChange={(e) => setEmailContent(e.target.value)}
-  InputProps={{
-    style: { resize: 'vertical' }, // Allow vertical resizing
-  }}
-  style={{ marginTop: '1rem' }}
-/>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  style={{ marginTop: '1rem' }}
-                  fullWidth
-                  onClick={() => alert('Send email functionality to be implemented')}
+              {/* Email Section */}
+              <Typography variant="h6" style={{ marginTop: '2rem' }}>
+                Email Customer
+              </Typography>
+              <FormControl fullWidth style={{ marginBottom: '1rem' }}>
+                <Select
+                  value={selectedTemplate}
+                  onChange={(e) => handleTemplateSelect(e.target.value)}
                 >
-                  Send Email
-                </Button>
-              </div>
+                  <MenuItem value="">Select a Template</MenuItem>
+                  {templates.map((template) => (
+                    <MenuItem key={template._id} value={template._id}>
+                      {template.title}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                label="Email Content"
+                fullWidth
+                multiline
+                rows={4}
+                value={emailContent}
+                onChange={(e) => setEmailContent(e.target.value)}
+                InputProps={{ style: { resize: 'vertical' } }}
+              />
+              <Button
+                variant="contained"
+                color="secondary"
+                style={{ marginTop: '1rem' }}
+                fullWidth
+                onClick={() => alert('Send email functionality to be implemented')}
+              >
+                Send Email
+              </Button>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Right Column: Notes List */}
+        {/* Right Column */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent style={{ maxHeight: '75vh', overflowY: 'auto' }}>
@@ -295,24 +281,13 @@ const ContactDetails = () => {
               </Typography>
               <List>
                 {contact.notes
-                  .slice()
+                  ?.slice()
                   .reverse()
                   .map((note, index) => (
-                    <ListItem
-                      key={index}
-                      style={{
-                        backgroundColor: note.contacted ? 'lightgreen' : 'inherit',
-                        borderRadius: '4px',
-                        marginBottom: '8px',
-                      }}
-                    >
+                    <ListItem key={index} style={{ backgroundColor: note.contacted ? 'lightgreen' : 'inherit' }}>
                       <ListItemText
-                        primary={`${note.text} ${
-                          note.contacted ? '(Customer Contacted)' : ''
-                        }`}
-                        secondary={`Added by ${note.createdBy} on ${new Date(
-                          note.date
-                        ).toLocaleString()}`}
+                        primary={`${note.text} ${note.contacted ? '(Customer Contacted)' : ''}`}
+                        secondary={`Added by ${note.createdBy} on ${new Date(note.date).toLocaleString()}`}
                       />
                     </ListItem>
                   ))}

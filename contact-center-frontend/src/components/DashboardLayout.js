@@ -29,6 +29,7 @@ const DashboardLayout = () => {
     '/create': 'Contact Management',
     '/register': 'User Management',
     '/reporting': 'Reporting',
+    '/email-templates': 'Email Templates',
   };
 
 
@@ -60,6 +61,7 @@ const DashboardLayout = () => {
     { text: 'Contact Management', path: '/create' },
     { text: 'Reporting', path: '/reporting' },
     { text: 'User Management', path: '/register' },
+    { text: 'Email Templates', path: '/email-templates' },
   ];
 
   return (
