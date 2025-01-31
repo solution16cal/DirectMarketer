@@ -1,10 +1,31 @@
 const mongoose = require('mongoose');
 
 const NoteSchema = new mongoose.Schema({
-  text: { type: String, required: true }, // Ensure this is explicitly defined as a string
-  contacted: { type: Boolean, default: false }, // Boolean for the checkbox
-  createdBy: { type: String, required: false}, // User's full name
-  date: { type: Date, default: Date.now }, // Timestamp for note creation
+  text: {
+    type: String,
+    required: true,
+  },
+  contacted: {
+    type: Boolean,
+    default: false,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+  createdBy: {
+    type: String,
+    required: false,
+  },
+  type: {
+    type: String,
+    enum: ['note', 'email'], // Allow only 'note' or 'email'
+    default: 'note',
+  },
+  content: {
+    type: String, // Optional field for storing email content
+    default: '',
+  },
 });
 
 const ContactSchema = new mongoose.Schema({

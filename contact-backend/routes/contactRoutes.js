@@ -153,7 +153,7 @@ router.post('/:id/notes', authMiddleware, async (req, res) => {
 });
 
 // POST: Send Email
-router.post('/:id/send-email', upload.single('attachment'), async (req, res) => {
+router.post('/:id/send-email', authMiddleware, upload.single('attachment'), async (req, res) => {
   try {
     const { subject, content } = req.body;
     const contact = await Contact.findById(req.params.id);
@@ -161,6 +161,7 @@ router.post('/:id/send-email', upload.single('attachment'), async (req, res) => 
       return res.status(404).json({ message: 'Contact not found' });
     }
 
+    // Set up the email transporter
     const transporter = nodemailer.createTransport({
       host: 'mail.smtp2go.com',
       port: 587,
@@ -170,6 +171,7 @@ router.post('/:id/send-email', upload.single('attachment'), async (req, res) => 
       },
     });
 
+    // Prepare email options
     const mailOptions = {
       from: process.env.SMTP_EMAIL,
       to: contact.email,
@@ -185,14 +187,17 @@ router.post('/:id/send-email', upload.single('attachment'), async (req, res) => 
         : [],
     };
 
+    // Send the email
     await transporter.sendMail(mailOptions);
 
-    // Record the email as a note with correct subject and sender
+    // Record the email as a note
     contact.notes.push({
-      text: `Email sent: "${subject}"`, // Use the subject line correctly
+      text: `Email sent: "${subject}"`, // Display the subject
+      content, // Store the email body for later viewing
       date: new Date(),
-      contacted: true,
-      createdBy: req.user?.fullName || 'System', // Set the user who sent the email or fallback to 'System'
+      contacted: false, // Ensure this is not treated as a "contacted" note
+      createdBy: req.user.fullName || 'System', // Set the user who sent the email
+      type: 'email', // Flag this note as an email
     });
 
     await contact.save(); // Save the updated contact with the new note

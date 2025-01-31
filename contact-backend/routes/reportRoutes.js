@@ -11,7 +11,8 @@ router.post('/notes', async (req, res) => {
 
     if (startDate) {
       // Convert startDate to UTC midnight of the local day
-      const startOfDayUTC = moment.tz(startDate, 'YYYY-MM-DD', 'Australia/Brisbane') // Replace with your timezone
+      const startOfDayUTC = moment
+        .tz(startDate, 'YYYY-MM-DD', 'Australia/Brisbane')
         .startOf('day')
         .utc()
         .toDate();
@@ -20,7 +21,8 @@ router.post('/notes', async (req, res) => {
 
     if (endDate) {
       // Convert endDate to UTC end of the local day
-      const endOfDayUTC = moment.tz(endDate, 'YYYY-MM-DD', 'Australia/Brisbane') // Replace with your timezone
+      const endOfDayUTC = moment
+        .tz(endDate, 'YYYY-MM-DD', 'Australia/Brisbane')
         .endOf('day')
         .utc()
         .toDate();
@@ -40,10 +42,19 @@ router.post('/notes', async (req, res) => {
     const groupStage = {
       $group: {
         _id: null,
-        totalNotes: { $sum: 1 },
+        totalNotes: {
+          $sum: {
+            $cond: [{ $ne: ['$notes.type', 'email'] }, 1, 0], // Exclude email notes
+          },
+        },
         contactedNotes: {
           $sum: {
             $cond: [{ $eq: ['$notes.contacted', true] }, 1, 0],
+          },
+        },
+        totalEmailsSent: {
+          $sum: {
+            $cond: [{ $eq: ['$notes.type', 'email'] }, 1, 0], // Count only email notes
           },
         },
       },
@@ -51,10 +62,11 @@ router.post('/notes', async (req, res) => {
 
     const result = await Contact.aggregate([unwindStage, matchStage, groupStage]);
 
-    res.status(200).json(result[0] || { totalNotes: 0, contactedNotes: 0 });
+    res.status(200).json(result[0] || { totalNotes: 0, contactedNotes: 0, totalEmailsSent: 0 });
   } catch (error) {
     console.error('Error generating report:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
 module.exports = router;

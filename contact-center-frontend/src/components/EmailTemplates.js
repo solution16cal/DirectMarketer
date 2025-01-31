@@ -14,6 +14,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import API from '../api';
 
 const EmailTemplates = () => {
@@ -108,15 +110,11 @@ const EmailTemplates = () => {
         value={subject}
         onChange={(e) => setSubject(e.target.value)}
       />
-      <TextField
-        label="Content"
-        fullWidth
-        multiline
-        rows={4}
-        margin="normal"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
+      <Typography variant="h6" style={{ marginBottom: '0.5rem' }}>
+        Content
+      </Typography>
+      <ReactQuill value={content} onChange={setContent} theme="snow" style={{ marginBottom: '1rem' }} />
+
       {error && <Typography color="error">{error}</Typography>}
       <Button variant="contained" color="primary" onClick={handleCreateTemplate} style={{ marginTop: '1rem' }}>
         Add Template
@@ -127,7 +125,10 @@ const EmailTemplates = () => {
       </Typography>
       <List>
         {templates.map((template) => (
-          <ListItem key={template._id} style={{ flexDirection: 'column', alignItems: 'start', paddingBottom: '1rem' }}>
+          <ListItem
+            key={template._id}
+            style={{ flexDirection: 'column', alignItems: 'start', paddingBottom: '1rem' }}
+          >
             {editTemplateId === template._id ? (
               <Box style={{ width: '100%' }}>
                 <TextField
@@ -144,14 +145,14 @@ const EmailTemplates = () => {
                   value={editFields.subject}
                   onChange={(e) => setEditFields({ ...editFields, subject: e.target.value })}
                 />
-                <TextField
-                  label="Content"
-                  fullWidth
-                  multiline
-                  rows={4}
-                  margin="normal"
+                <Typography variant="h6" style={{ marginBottom: '0.5rem' }}>
+                  Content
+                </Typography>
+                <ReactQuill
                   value={editFields.content}
-                  onChange={(e) => setEditFields({ ...editFields, content: e.target.value })}
+                  onChange={(value) => setEditFields({ ...editFields, content: value })}
+                  theme="snow"
+                  style={{ marginBottom: '1rem' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                   <Button
@@ -169,19 +170,7 @@ const EmailTemplates = () => {
               </Box>
             ) : (
               <>
-                <ListItemText
-                  primary={template.title}
-                  secondary={
-                    <>
-                      <Typography variant="body2">
-                        <strong>Subject:</strong> {template.subject}
-                      </Typography>
-                      <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
-                        {template.content}
-                      </Typography>
-                    </>
-                  }
-                />
+                <ListItemText primary={template.title} />
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <IconButton onClick={() => handleEditTemplate(template)}>
                     <EditIcon />
