@@ -12,7 +12,11 @@ const ContactSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   companyName: { type: String, required: true },
   email: { type: String },
-  doNotCall: { type: Boolean, default: false }, 
+  doNotCall: { type: Boolean, default: false },
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Reference to the User model
+  },
   notes: [NoteSchema],
 });
 

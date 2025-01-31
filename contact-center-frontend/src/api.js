@@ -31,6 +31,10 @@ export const updateContact = (id, contactData) => API.put(`/contacts/${id}`, con
 
 export const importContacts = (contacts) => API.post('/contacts/import', contacts);
 
+export const fetchUsers = () => API.get('/users');
+
+export const assignContact = (contactId, data) => API.put(`/contacts/${contactId}/assign`, data);
+
 // Function to add a note to a contact
 export const addNote = (id, { text, contacted }) => {
   console.log('Adding note with:', { text, contacted, id }); // Debugging
@@ -51,5 +55,7 @@ export default {
   fetchEmailTemplates,
   createEmailTemplate,
   deleteEmailTemplate,
+  assignContact,
+  fetchUsers,
 
 };

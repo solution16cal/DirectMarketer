@@ -25,6 +25,8 @@ import API from '../api';
 
 const ContactDetails = () => {
   const { id } = useParams();
+  const [users, setUsers] = useState([]);
+  const [assignedUser, setAssignedUser] = useState('');
   const [contact, setContact] = useState(null);
   const [note, setNote] = useState('');
   const [contacted, setContacted] = useState(false);
@@ -46,9 +48,17 @@ const ContactDetails = () => {
           email: response.data.email,
           doNotCall: response.data.doNotCall,
         });
+        setAssignedUser(response.data.assignedTo?._id || '');
       })
       .catch((error) => console.error('Error fetching contact:', error));
   }, [id]);
+
+  // Fetch available users
+  useEffect(() => {
+    API.fetchUsers()
+      .then((response) => setUsers(response.data))
+      .catch((error) => console.error('Error fetching users:', error));
+  }, []);
 
   // Fetch email templates
   useEffect(() => {
@@ -56,6 +66,14 @@ const ContactDetails = () => {
       .then((response) => setTemplates(response.data))
       .catch((error) => console.error('Error fetching templates:', error));
   }, []);
+
+  const handleAssignUser = () => {
+    API.assignContact(contact._id, { userId: assignedUser })
+      .then((response) => {
+        setContact(response.data);
+      })
+      .catch((error) => console.error('Error assigning user:', error));
+  };
 
   // Handle "Do Not Call" toggle
   const handleToggleDoNotCall = () => {
@@ -276,7 +294,31 @@ const ContactDetails = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent style={{ maxHeight: '75vh', overflowY: 'auto' }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6">Assign Contact</Typography>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1rem' }}>
+                <FormControl style={{ flex: 1 }}>
+                  <Select
+                    value={assignedUser}
+                    onChange={(e) => setAssignedUser(e.target.value)}
+                  >
+                    <MenuItem value="">Unassigned</MenuItem>
+                    {users.map((user) => (
+                      <MenuItem key={user._id} value={user._id}>
+                        {user.fullName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAssignUser}
+                >
+                  Assign
+                </Button>
+              </div>
+
+              <Typography variant="h6" gutterBottom style={{ marginTop: '2rem' }}>
                 Notes
               </Typography>
               <List>

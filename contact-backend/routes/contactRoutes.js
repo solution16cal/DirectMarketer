@@ -7,7 +7,7 @@ const router = express.Router();
 // Get All Contacts
 router.get('/', async (req, res) => {
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find().populate('assignedTo', 'fullName');
 
     // Map contacts to include last note details
     const contactsWithLastNote = contacts.map((contact) => {
@@ -28,16 +28,16 @@ router.get('/', async (req, res) => {
 
 // Get a single contact by ID
 router.get('/:id', async (req, res) => {
-    try {
-      const contact = await Contact.findById(req.params.id);
-      if (!contact) {
-        return res.status(404).json({ message: 'Contact not found' });
-      }
-      res.status(200).json(contact);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error', error });
+  try {
+    const contact = await Contact.findById(req.params.id).populate('assignedTo', 'fullName');
+    if (!contact) {
+      return res.status(404).json({ message: 'Contact not found' });
     }
-  });
+    res.status(200).json(contact);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
 
 // Create a New Contact
 router.post('/', async (req, res) => {
@@ -86,6 +86,27 @@ router.put('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating contact:', error);
     res.status(500).json({ message: 'Error updating contact' });
+  }
+});
+
+router.put('/:id/assign', authMiddleware, async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(
+      req.params.id,
+      { assignedTo: userId },
+      { new: true } // Return the updated contact
+    ).populate('assignedTo', 'fullName');
+
+    if (!updatedContact) {
+      return res.status(404).json({ message: 'Contact not found' });
+    }
+
+    res.status(200).json(updatedContact);
+  } catch (error) {
+    console.error('Error assigning user:', error);
+    res.status(500).json({ message: 'Error assigning contact' });
   }
 });
 
