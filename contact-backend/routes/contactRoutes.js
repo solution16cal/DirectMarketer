@@ -3,6 +3,10 @@ const Contact = require('../models/Contact');
 const User = require('../models/User');
 const authMiddleware = require('../routes/authMiddleware');
 const router = express.Router();
+const path = require('path');
+const multer = require('multer');
+const nodemailer = require('nodemailer');
+const upload = multer({ dest: 'uploads/' }); // File uploads stored temporarily
 
 // Get All Contacts
 router.get('/', async (req, res) => {
@@ -145,6 +149,58 @@ router.post('/:id/notes', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Error adding note:', error); // Log the error for debugging
     res.status(500).json({ message: 'Internal Server Error', error });
+  }
+});
+
+// POST: Send Email
+router.post('/:id/send-email', upload.single('attachment'), async (req, res) => {
+  try {
+    const { subject, content } = req.body;
+    const contact = await Contact.findById(req.params.id);
+    if (!contact) {
+      return res.status(404).json({ message: 'Contact not found' });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: 'mail.smtp2go.com',
+      port: 587,
+      auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.SMTP_EMAIL,
+      to: contact.email,
+      subject,
+      html: content,
+      attachments: req.file
+        ? [
+            {
+              filename: req.file.originalname,
+              path: req.file.path,
+            },
+          ]
+        : [],
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    // Record the email as a note with correct subject and sender
+    contact.notes.push({
+      text: `Email sent: "${subject}"`, // Use the subject line correctly
+      date: new Date(),
+      contacted: true,
+      createdBy: req.user?.fullName || 'System', // Set the user who sent the email or fallback to 'System'
+    });
+
+    await contact.save(); // Save the updated contact with the new note
+
+    res.status(200).json({ message: 'Email sent and recorded successfully' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ message: 'Error sending email', error });
   }
 });
 

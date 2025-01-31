@@ -33,6 +33,8 @@ export const importContacts = (contacts) => API.post('/contacts/import', contact
 
 export const fetchUsers = () => API.get('/users');
 
+export const fetchCurrentUser = () => API.get('/users');
+
 export const assignContact = (contactId, data) => API.put(`/contacts/${contactId}/assign`, data);
 
 // Function to add a note to a contact
@@ -40,9 +42,15 @@ export const addNote = (id, { text, contacted }) => {
   console.log('Adding note with:', { text, contacted, id }); // Debugging
   return API.post(`/contacts/${id}/notes`, { text, contacted });
 };
+// Function to update an email template
+export const updateEmailTemplate = (id, data) => API.put(`/email-templates/${id}`, data);
 export const fetchEmailTemplates = () => API.get('/email-templates');
 export const createEmailTemplate = (data) => API.post('/email-templates', data);
 export const deleteEmailTemplate = (id) => API.delete(`/email-templates/${id}`);
+
+export const sendEmail = (id, data) => {
+  return API.post(`/contacts/${id}/send-email`, data);
+};
 
 export default {
   fetchContacts,
@@ -57,5 +65,9 @@ export default {
   deleteEmailTemplate,
   assignContact,
   fetchUsers,
+  updateEmailTemplate,
+  sendEmail,
+  fetchCurrentUser,
+
 
 };

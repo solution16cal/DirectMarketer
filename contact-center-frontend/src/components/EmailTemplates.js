@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Container, TextField, Button, Typography, List, ListItem, ListItemText, IconButton } from '@mui/material';
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Box,
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 import API from '../api';
 
 const EmailTemplates = () => {
   const [templates, setTemplates] = useState([]);
   const [title, setTitle] = useState('');
+  const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
+  const [editTemplateId, setEditTemplateId] = useState(null); // ID of the template being edited
+  const [editFields, setEditFields] = useState({ title: '', subject: '', content: '' }); // Editable fields
 
   useEffect(() => {
     fetchTemplates();
@@ -23,14 +39,15 @@ const EmailTemplates = () => {
   };
 
   const handleCreateTemplate = async () => {
-    if (!title || !content) {
-      setError('Title and content are required');
+    if (!title || !subject || !content) {
+      setError('Title, subject, and content are required');
       return;
     }
 
     try {
-      await API.createEmailTemplate({ title, content });
+      await API.createEmailTemplate({ title, subject, content });
       setTitle('');
+      setSubject('');
       setContent('');
       setError('');
       fetchTemplates(); // Refresh templates
@@ -48,6 +65,29 @@ const EmailTemplates = () => {
     }
   };
 
+  const handleEditTemplate = (template) => {
+    setEditTemplateId(template._id);
+    setEditFields({
+      title: template.title,
+      subject: template.subject,
+      content: template.content,
+    });
+  };
+
+  const handleSaveEdit = async (id) => {
+    try {
+      await API.updateEmailTemplate(id, editFields);
+      setEditTemplateId(null); // Exit edit mode
+      fetchTemplates(); // Refresh templates
+    } catch (error) {
+      console.error('Error updating template:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditTemplateId(null); // Exit edit mode without saving
+  };
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
@@ -60,6 +100,13 @@ const EmailTemplates = () => {
         margin="normal"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+      />
+      <TextField
+        label="Subject"
+        fullWidth
+        margin="normal"
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
       />
       <TextField
         label="Content"
@@ -80,11 +127,71 @@ const EmailTemplates = () => {
       </Typography>
       <List>
         {templates.map((template) => (
-          <ListItem key={template._id} style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <ListItemText primary={template.title} secondary={template.content} />
-            <IconButton edge="end" onClick={() => handleDeleteTemplate(template._id)}>
-              <DeleteIcon />
-            </IconButton>
+          <ListItem key={template._id} style={{ flexDirection: 'column', alignItems: 'start', paddingBottom: '1rem' }}>
+            {editTemplateId === template._id ? (
+              <Box style={{ width: '100%' }}>
+                <TextField
+                  label="Title"
+                  fullWidth
+                  margin="normal"
+                  value={editFields.title}
+                  onChange={(e) => setEditFields({ ...editFields, title: e.target.value })}
+                />
+                <TextField
+                  label="Subject"
+                  fullWidth
+                  margin="normal"
+                  value={editFields.subject}
+                  onChange={(e) => setEditFields({ ...editFields, subject: e.target.value })}
+                />
+                <TextField
+                  label="Content"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  margin="normal"
+                  value={editFields.content}
+                  onChange={(e) => setEditFields({ ...editFields, content: e.target.value })}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                  <Button
+                    startIcon={<SaveIcon />}
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleSaveEdit(template._id)}
+                  >
+                    Save
+                  </Button>
+                  <Button startIcon={<CancelIcon />} variant="outlined" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                </div>
+              </Box>
+            ) : (
+              <>
+                <ListItemText
+                  primary={template.title}
+                  secondary={
+                    <>
+                      <Typography variant="body2">
+                        <strong>Subject:</strong> {template.subject}
+                      </Typography>
+                      <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
+                        {template.content}
+                      </Typography>
+                    </>
+                  }
+                />
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <IconButton onClick={() => handleEditTemplate(template)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton edge="end" onClick={() => handleDeleteTemplate(template._id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </div>
+              </>
+            )}
           </ListItem>
         ))}
       </List>

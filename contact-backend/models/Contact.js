@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const NoteSchema = new mongoose.Schema({
   text: { type: String, required: true }, // Ensure this is explicitly defined as a string
   contacted: { type: Boolean, default: false }, // Boolean for the checkbox
-  createdBy: { type: String, required: true}, // User's full name
+  createdBy: { type: String, required: false}, // User's full name
   date: { type: Date, default: Date.now }, // Timestamp for note creation
 });
 

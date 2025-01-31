@@ -35,6 +35,17 @@ const ContactDetails = () => {
   const [updatedContact, setUpdatedContact] = useState({});
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loggedInUserFullName, setLoggedInUserFullName] = useState('Unknown User'); 
+
+  // Fetch logged-in user details (from backend)
+  useEffect(() => {
+    API.fetchCurrentUser() // Assuming this API exists to fetch the logged-in user
+      .then((response) => {
+        setLoggedInUserFullName(response.data.fullName); // Store the user's full name
+      })
+      .catch(() => setLoggedInUserFullName('Unknown User')); // Default fallback
+  }, []);
 
   // Fetch contact details
   useEffect(() => {
@@ -117,6 +128,11 @@ const ContactDetails = () => {
       .catch((error) => console.error('Error adding note:', error));
   };
 
+  // Handle file selection
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]); // Store the selected file
+  };
+
   // Handle selecting an email template and dynamically render placeholders
   const handleTemplateSelect = (templateId) => {
     const template = templates.find((t) => t._id === templateId);
@@ -125,6 +141,41 @@ const ContactDetails = () => {
       const rendered = Mustache.render(template.content, { contact });
       setEmailContent(rendered);
     }
+  };
+
+  const handleSendEmail = () => {
+    if (!selectedTemplate || !emailContent.trim()) {
+      alert('Please select a template and enter email content.');
+      return;
+    }
+
+    const template = templates.find((t) => t._id === selectedTemplate);
+    const subject = template?.subject || 'No Subject';
+
+    const formData = new FormData();
+    formData.append('subject', subject);
+    formData.append('content', emailContent);
+    if (selectedFile) {
+      formData.append('attachment', selectedFile);
+    }
+
+    API.sendEmail(contact._id, formData)
+      .then(() => {
+        setContact((prev) => ({
+          ...prev,
+          notes: [
+            ...prev.notes,
+            {
+              text: `Email sent: "${subject}"`, // Display subject correctly
+              date: new Date(),
+              contacted: true,
+              createdBy: 'System', // Correct user now
+            },
+          ],
+        }));
+        alert('Email sent successfully');
+      })
+      .catch((error) => console.error('Error sending email:', error));
   };
 
   if (!contact) return <div>Loading...</div>;
@@ -277,12 +328,16 @@ const ContactDetails = () => {
                 onChange={(e) => setEmailContent(e.target.value)}
                 InputProps={{ style: { resize: 'vertical' } }}
               />
+              <Typography variant="h6" style={{ marginTop: '2rem' }}>
+                Attach a File (Optional)
+              </Typography>
+              <input type="file" onChange={handleFileChange} style={{ marginTop: '1rem' }} />
               <Button
                 variant="contained"
                 color="secondary"
                 style={{ marginTop: '1rem' }}
                 fullWidth
-                onClick={() => alert('Send email functionality to be implemented')}
+                onClick={handleSendEmail}
               >
                 Send Email
               </Button>
