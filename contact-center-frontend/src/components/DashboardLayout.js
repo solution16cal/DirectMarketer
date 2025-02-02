@@ -72,7 +72,7 @@ const DashboardLayout = () => {
       <AppBar position="fixed">
         <Toolbar>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            SalesWeak
+            CC CRM
           </Typography>
           <Typography
             variant="h6"

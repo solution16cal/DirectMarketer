@@ -4,9 +4,9 @@ const authMiddleware = require('./authMiddleware');
 const router = express.Router();
 
 // Get all email templates
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const templates = await EmailTemplate.find({ createdBy: req.user.id });
+    const templates = await EmailTemplate.find();
     res.status(200).json(templates);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching templates', error });
